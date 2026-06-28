@@ -8,13 +8,45 @@
   const menuBtn = document.querySelector('[data-menu-toggle]');
   const navLinks = document.querySelector('[data-nav-links]');
   if (menuBtn && navLinks) {
-    menuBtn.addEventListener('click', () => {
-      const open = navLinks.classList.toggle('open');
-      menuBtn.setAttribute('aria-expanded', String(open));
+    const closeMenu = () => {
+      navLinks.classList.remove('open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    };
+    const openMenu = () => {
+      navLinks.classList.add('open');
+      menuBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    };
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (navLinks.classList.contains('open')) closeMenu();
+      else openMenu();
     });
     navLinks.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => navLinks.classList.remove('open'));
+      a.addEventListener('click', closeMenu);
     });
+    // Close menu on outside tap
+    document.addEventListener('click', (e) => {
+      if (navLinks.classList.contains('open')
+          && !navLinks.contains(e.target)
+          && !menuBtn.contains(e.target)) {
+        closeMenu();
+      }
+    });
+    // Close menu on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navLinks.classList.contains('open')) closeMenu();
+    });
+    // Swipe-left to close (native gesture feel)
+    let touchStartX = 0;
+    navLinks.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    navLinks.addEventListener('touchend', (e) => {
+      const delta = e.changedTouches[0].clientX - touchStartX;
+      if (delta < -60) closeMenu();   // swipe left
+    }, { passive: true });
   }
 
   /* ---------- Scroll Reveal ---------- */
